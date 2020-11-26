@@ -1,0 +1,67 @@
+\documentclass[12pt]{extarticle}
+\usepackage[utf8, margin=1in]{geometry}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{float}
+
+% \usepackage[sorting=none]{biblatex}
+
+\title{\vspace{-25mm}
+CNN-based Blood Pressure Estimation using PPG Signals}
+\author{Ali Seyfi \and Sahar Mavali}                   
+\date{Oct 2020}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction and motivation for the topic}
+Blood pressure (BP) is one of the most important vital signs of the human body. Regular measurement of blood pressure can play a significant role in the early diagnosis and prevention of cardiovascular diseases. High BP which is also called hypertension, is one of the major recognized causes of stroke and heart attacks. In contrast low BP, or in other words hypotension, may lead to fainting or dizziness. Which shows the importance of regularly measuring this vital sign\cite{1}.\\
+\vspace{-5pt}
+
+% 	BP is the pressure of blood on the walls of vessels. Normally BP reports as two numbers, systolic pressure (highest BP and heartbeat) and diastolic pressure (lowest BP) and its unit is usually millimeters of mercury(mmHg). The BP of a normal person in the rest condition is about 120 mmHg for systolic and 80 mmHg for diastolic\cite{1}.\\
+% 	\vspace{-5pt}
+
+% The most practiced methods for measuring blood pressure include either an invasive or a non-invasive procedure.
+In the invasive method, the doctors perform arterial lines management to continuously monitor the patient’s blood pressure in a high accuracy setting. This method has a high risk of infection and therefore not suitable for continuous BP measurement for most patients. In the non-invasive method, an inflatable arm cuff has to be worn by the patient. The cuff-based method is time-consuming and uncomfortable for most patients since they should keep steady during the measurement. Therefore, using the cuff-based method for regular or continuous BP monitoring is not feasible. \\
+\vspace{-5pt}
+
+Photoplethysmography (PPG) is a signal that is obtained by measuring the amount of light absorption or reflection by blood vessels\cite{2}. This signal can provide us with information regarding heart rate, blood oxygen saturation, and blood pressure. The technology behind PPG signals is versatile and low-cost. An important advantage of PPG signals is that they can be measured by smartphones and smartwatches without further need for other medical devices. The non-invasive nature of this signal combined with its versatility makes it a great candidate for blood pressure measurement. However, high levels of noise in measuring PPG signals are the main disadvantage of PPG-based measuring\cite{1}.
+
+\section*{Data acquisition strategy}
+
+We have found three datasets from which we can extract PPG signals. The MIMIC-III database \footnote{https://mimic.physionet.org/gettingstarted/dbsetup/} contains vitals sign time series for thousands of ICU patients. The non-invasive Blood Pressure Estimation dataset is from Sharif University of Technology \footnote{https://www.kaggle.com/mkachuee/noninvasivebp} and is used in the HYPE \footnote{https://www.medrxiv.org/content/10.1101/2020.05.27.20107243v4} project. This dataset provides a collection of vital signs and reference blood pressure values acquired from 26 subjects that can be used for non-invasive cuff-less blood pressure estimation.
+The last dataset, BloodPressureDataset \footnote{https://www.kaggle.com/mkachuee/BloodPressureDataset} is another dataset from Kaggle, which contains the raw electrocardiogram (ECG), photoplethysmography (PPG), and arterial blood pressure (ABP) signals that were originally collected from the physionet.org and have undergone some preprocessing and validation.\\
+\vspace{-5pt}
+
+	If we find enough time, we plan to use sensors in smartphones or smartwatches for collecting PPG signals and compare our results with home BP measurement devices.
+
+\section*{Outline of proposed approach/implementation}
+
+\subsection*{Signal Processing}
+
+We will acquire PPG and blood pressure parameters from our mentioned datasets.     These signals may contain a lot of noise due to the measurement procedure such as insufficient contact with the sensors or motion effects. Even small amounts of noise in PPG and BP signals will cause inaccurate results in our blood pressure estimation. Therefore, preprocessing of the signals is necessary to remove the existing noise.
+
+\subsection*{Machine Learning}
+
+Former work in estimating BP based on PPG signals have proposed machine learning algorithms such as linear regressions, support vector machines (SVMs), and random forests. In these methods, the accuracy of the extracted features from the PPG signals play a very important role in obtaining satisfactory results. Since these features are extremely sensitive to noise, the mentioned methods did not yield good results. More recent approaches to this problem have used deep learning methods such as RNNs and CNNs on spectro-temporal PPG spectrograms. These methods have better results and do not require hand-crafted features extracted from the PPG signals. We have decided to use CNNs for extracting features from the PPG spectrograms.\\
+\vspace{-5pt}
+
+% Convolutional neural networks (CNNs) are a type of deep neural network used mostly for image classification and recognition. CNNs are made up of multiple layers which include the input and output layer and hidden layers in the middle. These hidden layers consist of several convolutional layers that perform cross-correlation over their inputs. The other layers can be pooling layers, fully connected layers, and normalization layers. You can see the structure of a CNN in figure bellow:
+
+%\begin{center}
+%  \includegraphics[width=0.7\textwidth]{1.png}
+%\end{center}
+
+
+\section*{Outline of evaluation strategy}
+
+Based on the Association of advancement of Medical Instrumentation (AAMI), the mean absolute difference (MAD) and the standard deviation of non-invasive blood pressure measurement methods must be less than 5mmHg and 8mmHg concerning a reference method\cite{3}. We expect our method to perform as well as cuff-based home devices which are inaccurate in 5\% to 15\% of their measurements\cite{4, 5}.\\
+\vspace{-5pt}
+
+We will compare our results with the ground truth using mean absolute error (MAE) and mean square error (MSE). We hope to achieve an accuracy similar to or better than the home devices and following AAMI standards.
+
+\bibliographystyle{ieeetr}
+\bibliography{M335}
+
+\end{document}
