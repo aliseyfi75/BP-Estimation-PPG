@@ -167,11 +167,20 @@ final_data = preparing_dataset(add)
 # Create CNN data set
 xtrain, xtest, ytrain, ytest = CNN_dataset_maker(final_data)
 
+print(xtrain[0])
+
+xtrain.tofile('../Data/xtrain.dat')
+xtest.tofile('../Data/xtest.dat')
+ytrain.tofile('../Data/ytrain.dat')
+ytest.tofile('../Data/ytest.dat')
+
+print(ytest.shape, xtest.shape)
+
 # Fit CNN model
-model = CNN_model()
-model.fit(xtrain, ytrain, batch_size=12,epochs=200, verbose=0)
+# model = CNN_model()
+# model.fit(xtrain, ytrain, batch_size=12,epochs=200, verbose=0)
 
 # Find the prediction and error
-ypred = model.predict(xtest)
-print(model.evaluate(xtrain, ytrain))
-print("MAE: %.4f" % mean_absolute_error(ytest, ypred))
+# ypred = model.predict(xtest)
+# print(model.evaluate(xtrain, ytrain))
+# print("MAE: %.4f" % mean_absolute_error(ytest, ypred))
