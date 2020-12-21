@@ -3,11 +3,12 @@ import jsonpickle
 from flask import Flask, request, flash, url_for
 from werkzeug.utils import secure_filename, redirect
 import logging
+from OurMethod import function
 
 log = logging.getLogger('werkzeug')
 # log.setLevel(logging.ERROR)
 app = Flask(__name__)
-UPLOAD_FOLDER = 'C:/Users/Parsa/Desktop/flask_sever/Uploads'
+UPLOAD_FOLDER = 'Data/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 isAvailable = True
 
@@ -41,8 +42,12 @@ def upload_file():
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'vid.mp4'))
-            return redirect(url_for('upload_file',
-                                    filename=filename))
+
+            H, L = function(file)
+
+            BP_str = "SBP : " + str(H) + ", DBP : " + str(L)
+
+            return jsonpickle.encode(SimpleResponse(BP_str))
     else:
         return jsonpickle.encode(SimpleResponse(1))
 
