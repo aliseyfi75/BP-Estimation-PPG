@@ -42,8 +42,7 @@ def upload_file():
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'vid.mp4'))
-
-            H, L = function(file)
+            H, L = function(os.path.join(app.config['UPLOAD_FOLDER'], 'vid.mp4'), 'vid')
 
             BP_str = "SBP : " + str(H) + ", DBP : " + str(L)
 

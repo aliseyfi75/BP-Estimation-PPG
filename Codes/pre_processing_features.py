@@ -3,6 +3,7 @@ import scipy.signal
 import csv
 import matplotlib.pyplot as pp
 import scipy.io
+import spectrum
 
 # given ppg input, minimum distance between peaks, writes the extracted features to filepath
 def pre_process_input(ppg, distance, filepath):
@@ -170,7 +171,7 @@ def remove_noise(bp_peaks, ppg_peaks):
 
 
 # reads data and extract bp and ppg features and writes to two separate files
-def pre_process_mat_files(input_path):
+def pre_process_mat_files_21(input_path):
     part1 = scipy.io.loadmat(input_path)
     part1_data = part1['p'][0]
 
@@ -181,13 +182,21 @@ def pre_process_mat_files(input_path):
     number_of_pulses = 0
 
     for record in range(part1_size):
+        ppg = part1_data[record][0]
         bp = part1_data[record][1]
+
+        if len(bp) < len(ppg):
+            ppg = ppg[:len(bp)]
+        else:
+            bp = bp[:len(ppg)]
+
+
         bp_peaks = scipy.signal.find_peaks(bp, distance=70)[0]
         bp_valleys = scipy.signal.find_peaks(-1 * bp, distance=70)[0]
 
-        ppg = part1_data[record][0]
         ppg_peaks = scipy.signal.find_peaks(ppg, distance=70)[0]
         ppg_valleys = scipy.signal.find_peaks(-1 * ppg, distance=70)[0]
+
 
         if ppg_peaks[0] < ppg_valleys[0]:
             ppg_peaks = ppg_peaks[1:]
@@ -218,6 +227,7 @@ def pre_process_mat_files(input_path):
         bp_info = []
         ppg_info = []
         i = 0
+        p = 0
         while i < len(ppg_peaks_fixed) - 1:
 
             if i == len(bp_valleys_fixed) - 1:
@@ -287,19 +297,108 @@ def pre_process_mat_files(input_path):
                     bp_info.append([diastolic, systolic])
             i = i + 1
 
-        print(bp_info)
-        print(ppg_info)
+
         number_of_pulses += len(ppg_info)
 
-        with open('part2_ppg.csv', 'a', newline='') as file:
+        with open('parts6_ppg.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerows(ppg_info)
 
-        with open('part2_bp.csv', 'a', newline='') as file:
+        with open('parts6_bp.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerows(bp_info)
 
     print("number of pulses: ", number_of_pulses)
 
+
+def pre_process_mat_files_5(input_path):
+    part = scipy.io.loadmat(input_path)
+    part_data = part['p'][0]
+
+    part_size = len(part_data)
+    print(part_size)
+
+    checked = []
+    number_of_pulses = 0
+
+    for record in range(part_size):
+        ppg = part_data[record][0]
+        bp = part_data[record][1]
+
+        if len(bp) < len(ppg):
+            ppg = ppg[:len(bp)]
+        else:
+            bp = bp[:len(ppg)]
+        ppg = np.flip(ppg)
+        bp = np.flip(bp)
+        bp_peaks = scipy.signal.find_peaks(bp, distance=70)[0]
+        bp_valleys = scipy.signal.find_peaks(-1 * bp, distance=70)[0]
+        ppg_peaks = scipy.signal.find_peaks(ppg, distance=70)[0]
+        ppg_valleys = scipy.signal.find_peaks(-1 * ppg, distance=70)[0]
+        if ppg_peaks[0] < ppg_valleys[0]:
+            ppg_peaks = ppg_peaks[1:]
+            if bp_valleys[0] < bp_peaks[0]:
+                bp_valleys = bp_valleys[1:]
+            bp_peaks = bp_peaks[1:]
+        ppg_peaks_fixed, bp_peaks_fixed = align_signals(bp_peaks, ppg_peaks)
+        ppg_peaks_fixed, bp_peaks_fixed = remove_noise(bp_peaks_fixed, ppg_peaks_fixed)
+        ppg_valleys_fixed = find_valleys(ppg_peaks_fixed, ppg_valleys, True)
+        bp_valleys_fixed = find_valleys(bp_peaks_fixed, bp_valleys, False)
+        checked.append(record)
+        bp_valleys_fixed = bp_valleys_fixed.astype(int)
+        bp_peaks_fixed = bp_peaks_fixed.astype(int)
+        ppg_peaks_fixed = ppg_peaks_fixed.astype(int)
+        ppg_valleys_fixed = ppg_valleys_fixed.astype(int)
+        ppg_diff = ppg_valleys_fixed[1:] - ppg_peaks_fixed
+        if ppg_diff != []:
+            if ppg_diff[-1] < 0:
+                ppg_peaks_fixed = ppg_peaks_fixed[:-1]
+                ppg_valleys_fixed = ppg_valleys_fixed[:-1]
+        bp_info = []
+        ppg_info = []
+        i = 0
+        p = 0
+        while i < len(ppg_peaks_fixed) - 1:
+            if i == len(bp_valleys_fixed) - 1:
+                break
+            if i == len(bp_peaks_fixed) - 1:
+                break
+            diastolic = bp[bp_valleys_fixed[i]]
+            systolic = bp[bp_peaks_fixed[i]]
+            cardiac_period = ppg_peaks_fixed[i + 1] - ppg_peaks_fixed[i]
+            SUT = ppg_peaks_fixed[i] - ppg_valleys_fixed[i]
+            area = np.trapz(ppg[ppg_valleys_fixed[i]:ppg_valleys_fixed[i + 1]], dx=1 / 125)
+            first_half = ppg[ppg_valleys_fixed[i]:ppg_peaks_fixed[i]]
+            second_half = ppg[ppg_peaks_fixed[i]:ppg_valleys_fixed[i + 1]]
+            if len(first_half) != 0 and len(second_half) != 0:
+                # print(len(ppg_peaks_fixed), len(ppg_valleys_fixed), i)
+                height = ppg[ppg_peaks_fixed[i]] - ppg[ppg_valleys_fixed[i]]
+                height50 = (0.50 * height) + ppg[ppg_valleys_fixed[i]]
+                height25 = (0.25 * height) + ppg[ppg_valleys_fixed[i]]
+                height75 = (0.75 * height) + ppg[ppg_valleys_fixed[i]]
+                first_index_50 = np.argmin(abs(first_half - height50)) + ppg_valleys_fixed[i]
+                second_index_50 = np.argmin(abs(second_half - height50)) + ppg_peaks_fixed[i]
+                first_index_25 = np.argmin(abs(first_half - height25)) + ppg_valleys_fixed[i]
+                second_index_25 = np.argmin(abs(second_half - height25)) + ppg_peaks_fixed[i]
+                first_index_75 = np.argmin(abs(first_half - height75)) + ppg_valleys_fixed[i]
+                second_index_75 = np.argmin(abs(second_half - height75)) + ppg_peaks_fixed[i]
+                signal_width25 = second_index_25 - first_index_25
+                signal_width50 = second_index_50 - first_index_50
+                signal_width75 = second_index_75 - first_index_75
+                if 40 < diastolic < 85 and 75 < systolic < 165:
+                    ppg_info.append(
+                        [cardiac_period, SUT, area, signal_width25, signal_width50, signal_width75])
+                    bp_info.append([diastolic, systolic])
+            i = i + 1
+
+        number_of_pulses += len(ppg_info)
+            #
+        with open('parts9_ppg_5.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(ppg_info)
+        with open('parts9_bp_5.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(bp_info)
+    print("number of pulses: ", number_of_pulses)
 
 
